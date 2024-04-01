@@ -1,0 +1,18 @@
+{
+    "name": "TestCompany.AWSTools.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "TestCompany.AWSTools"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        "System.IO.Compression.ZipFile.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

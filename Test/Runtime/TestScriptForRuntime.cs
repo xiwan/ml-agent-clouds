@@ -1,15 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using GSTool.Array;
+using MlAgent.Clouds;
 
-public class TestScript01 : MonoBehaviour
+public class TestScriptForRuntime : MonoBehaviour
 {
     public string[] infoList;
     // Start is called before the first frame update
     void Start()
     {
-        Debug.Log(infoList.ToOneString());
+        //var tools = new AWSTools();
+        // tools.ListBuckets();
+
+        //var editorExample = new EditorExample();
+        //Debug.Log(infoList.ToOneString());
     }
 
     // Update is called once per frame

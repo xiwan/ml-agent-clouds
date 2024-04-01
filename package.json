@@ -8,7 +8,9 @@
   "documentationUrl": "https://github.com/xiwan",
   "changelogUrl": "https://github.com/xiwan",
   "licensesUrl": "https://github.com/xiwan",
-  "dependencies": {},
+    "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "2.0.0"
+    },
    "keywords": [
       "ml-agent",
       "aws",
