@@ -1,3 +1,5 @@
+// #define DEV_MODE
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,6 +13,7 @@ using UnityEngine;
 
 namespace MlAgent.Clouds
 {
+
     public class DockerTools
     {
         private static readonly Lazy<DockerTools> _instance = new Lazy<DockerTools>(() => new DockerTools());
@@ -69,10 +72,15 @@ namespace MlAgent.Clouds
             }
 
             string parentDirectory = "";
-            // if development, uncomment below line
+            string dockerBuildDirectory = "";
+
+#if DEV_MODE
+            dockerBuildDirectory = Path.Combine(Application.dataPath, parentDirectory, "CoreFramework/Runtime/Container");
+#else
             parentDirectory = GetInstalledPackagePath("com.benxiwan.ml-agent-clouds");
-            //string parentDirectory = "../Library/PackageCache/com.benxiwan.ml-agent-clouds";
-            string dockerBuildDirectory = Path.Combine(Application.dataPath, parentDirectory, "CoreFramework/Runtime/Container");
+            dockerBuildDirectory = Path.Combine(Application.dataPath, parentDirectory, "Runtime/Container");
+
+#endif
 
             UnityEngine.Debug.Log(dockerBuildDirectory);
             // 确保目录存在
