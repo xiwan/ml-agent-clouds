@@ -6,7 +6,6 @@ using Amazon.SecurityToken;
 using Amazon.Runtime.CredentialManagement;
 using Amazon.S3;
 using Amazon;
-using UnityEditor.PackageManager;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Amazon.GameLift.Model;
