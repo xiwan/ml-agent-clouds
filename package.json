@@ -1,6 +1,6 @@
 {
   "name": "com.benxiwan.ml-agent-clouds",
-  "version": "1.2.3",
+  "version": "2.0.0",
   "displayName": "ML-Agent-Clouds",
   "description": "A package helps u shipping ML-Agent to Clouds, like AWS",
   "unity": "2022.3",
