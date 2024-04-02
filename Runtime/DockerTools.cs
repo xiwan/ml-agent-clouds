@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using UnityEditor;
+using UnityEditor.PackageManager;
+using UnityEditor.PackageManager.Requests;
 using UnityEngine;
 
 namespace MlAgent.Clouds
@@ -66,14 +68,13 @@ namespace MlAgent.Clouds
                 return;
             }
 
-            //string currentDirectory = Directory.GetCurrentDirectory();
-            //UnityEngine.Debug.Log("Current Directory: " + currentDirectory);
-            //string dockerBuildDirectory = "./Container";
-            string parentDirectory = "../Library/PackageCache/com.benxiwan.ml-agent-clouds@2.0.2";
+            string parentDirectory = "";
+            // if development, uncomment below line
+            parentDirectory = GetInstalledPackagePath("com.benxiwan.ml-agent-clouds");
+            //string parentDirectory = "../Library/PackageCache/com.benxiwan.ml-agent-clouds";
+            string dockerBuildDirectory = Path.Combine(Application.dataPath, parentDirectory, "CoreFramework/Runtime/Container");
 
-            UnityEngine.Debug.Log(parentDirectory);
-            string dockerBuildDirectory = Path.Combine(Application.dataPath, parentDirectory, "CoreFramework/Container");
-
+            UnityEngine.Debug.Log(dockerBuildDirectory);
             // 确保目录存在
             if (!Directory.Exists(dockerBuildDirectory))
             {
@@ -118,6 +119,30 @@ namespace MlAgent.Clouds
         public string GetOutput()
         {
             return outputBuilder.ToString();
+        }
+
+
+        public static string GetInstalledPackagePath(string packageName)
+        {
+            ListRequest listRequest = Client.List(true, true);
+
+            while (listRequest.Status == StatusCode.InProgress)
+            {
+                // 等待列表请求完成
+            }
+
+            if (listRequest.Status == StatusCode.Success)
+            {
+                foreach (var package in listRequest.Result)
+                {
+                    if (package.name == packageName)
+                    {
+                        return package.resolvedPath;
+                    }
+                }
+            }
+
+            return null;
         }
     }
 
