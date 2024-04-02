@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using UnityEditor;
 using UnityEngine;
 
 namespace MlAgent.Clouds
@@ -65,7 +66,14 @@ namespace MlAgent.Clouds
                 return;
             }
 
-            string dockerBuildDirectory = Path.Combine(Application.dataPath, "CoreFramework/Container");
+            //string currentDirectory = Directory.GetCurrentDirectory();
+            //UnityEngine.Debug.Log("Current Directory: " + currentDirectory);
+            //string dockerBuildDirectory = "./Container";
+            string parentDirectory = "../Library/PackageCache/com.benxiwan.ml-agent-clouds@2.0.2";
+
+            UnityEngine.Debug.Log(parentDirectory);
+            string dockerBuildDirectory = Path.Combine(Application.dataPath, parentDirectory, "CoreFramework/Container");
+
             // 确保目录存在
             if (!Directory.Exists(dockerBuildDirectory))
             {
