@@ -5,6 +5,9 @@ using UnityEngine;
 using MlAgent.Clouds;
 using System.IO.Compression;
 using System.IO;
+using System.Diagnostics;
+using static Codice.Client.Commands.WkTree.WorkspaceTreeNode;
+using Amazon.GameLift;
 
 namespace MlAgent.Editor
 {
@@ -26,10 +29,14 @@ namespace MlAgent.Editor
         bool s3ButtonFired = false;
         string uploadS3Location = "";
 
+        string buildStatus = "";
+        string imageName = "aws-mlagents";
+        string dockerButton = "Build Docker Image and Push to ECR";
+        bool dockerButtonFired = false;
 
-        bool groupEnabled;
-        bool myBool = true;
-        float myFloat = 1.23f;
+        //bool groupEnabled;
+        //bool myBool = true;
+        //float myFloat = 1.23f;
 
         // Add menu named "My Window" to the Window menu
         [MenuItem("Window/ML-Agent-Clouds")]
@@ -41,7 +48,7 @@ namespace MlAgent.Editor
 
         }
 
-        void OnGUI()
+        async void OnGUI()
         {
             GUILayout.Label("ML-Agent-Clouds Settings", EditorStyles.largeLabel);
 
@@ -69,7 +76,6 @@ namespace MlAgent.Editor
             targetS3Bucket = EditorGUILayout.TextField("s3 bucket", targetS3Bucket);
             regionIndex = EditorGUILayout.Popup("region", regionIndex, regionOptions);
 
-
             GUILayout.Label("Please use following s3 URI:", EditorStyles.wordWrappedMiniLabel);
             GUILayout.Label(uploadS3Location, EditorStyles.linkLabel);
 
@@ -89,14 +95,14 @@ namespace MlAgent.Editor
 
                         if (uploadLocation != null)
                         {
-                            Debug.Log($"uploadLocation: {uploadLocation}");
+                            UnityEngine.Debug.Log($"uploadLocation: {uploadLocation}");
                             uploadS3Location = uploadLocation;
                             Repaint();
                         }
                     }
                     catch (Exception ex)
                     {
-                        Debug.Log($"Error1: {ex.Message}");
+                        UnityEngine.Debug.Log($"Error1: {ex.Message}");
                     }
                     finally
                     {
@@ -112,6 +118,34 @@ namespace MlAgent.Editor
             }
 
             DrawHorizontalLine();
+            GUILayout.Label("3rd. Build a docker image and push to AWS ECR.", EditorStyles.wordWrappedMiniLabel);
+            imageName = EditorGUILayout.TextField("Image Name", imageName);
+            GUILayout.Label("Build outputs:", EditorStyles.wordWrappedMiniLabel);
+            GUILayout.Label(buildStatus, EditorStyles.linkLabel);
+            
+            if (GUILayout.Button(dockerButton))
+            {
+                dockerButtonFired = true;
+                if (dockerButtonFired)
+                {
+                    buildStatus = "...";
+                    Repaint();
+                    AWSTools.Instance.Init(awsAK, awsSK, regionOptions[regionIndex]);
+                    var accountId = await AWSTools.Instance.GetCallerInfoAsync();
+                    DockerTools.Instance.Build(regionOptions[regionIndex], accountId, imageName, (object sender, DataReceivedEventArgs e) => {
+                        if (!string.IsNullOrEmpty(e.Data))
+                        {
+                            UnityEngine.Debug.Log(e.Data); // 在Unity编辑器控制台输出
+                            buildStatus = e.Data;
+                            buildStatus = $"{accountId}.dkr.ecr.{regionOptions[regionIndex]}.amazonaws.com/{imageName}:latest";
+                            //Repaint();
+                        }
+                    });
+                    dockerButtonFired = false;
+                }
+            }
+
+
             //groupEnabled = EditorGUILayout.BeginToggleGroup("Optional Settings", groupEnabled);
             //myBool = EditorGUILayout.Toggle("Toggle", myBool);
             //myFloat = EditorGUILayout.Slider("Slider", myFloat, -3, 3);

@@ -10,6 +10,8 @@ using UnityEditor.PackageManager;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Amazon.GameLift.Model;
+using Amazon.SecurityToken.Model;
+using System.Threading.Tasks;
 
 namespace MlAgent.Clouds
 {
@@ -32,8 +34,16 @@ namespace MlAgent.Clouds
 
         public void Init(string AK, string SK, string regionCode)
         {
-            Instance.credentials = LoadBasicCredentials(AK, SK);
+            Instance.credentials = new BasicAWSCredentials(AK, SK);
             Instance.regionEndpoint = RegionEndpoint.GetBySystemName(regionCode);
+        }
+
+        public async Task<string> GetCallerInfoAsync()
+        {
+            var client = new AmazonSecurityTokenServiceClient(Instance.credentials, Instance.regionEndpoint);
+            var response = await client.GetCallerIdentityAsync(new GetCallerIdentityRequest());
+            string accountId = response.Account;
+            return accountId;
         }
 
         public string UploadToS3Bucket(string bucketName, string filePath)
@@ -69,7 +79,7 @@ namespace MlAgent.Clouds
             return $"{s3Location}/{uploadLocation}";
         }
 
-        String SetupBucket(AmazonS3Client s3Client, string bucketName)
+        string SetupBucket(AmazonS3Client s3Client, string bucketName)
         {
             try
             {
@@ -94,22 +104,6 @@ namespace MlAgent.Clouds
             return $"s3://{bucketName}";
         }
 
-        public string ListBuckets()
-        {
-            //var ssoCreds = LoadSsoCredentials("default");
-            //var credentials = LoadBasicCredentials(ssoCreds.GetCredentials().AccessKey, ssoCreds.GetCredentials().SecretKey);
-            // var credentials = LoadBasicCredentials(AK, SK);
-            var s3Client = new AmazonS3Client(Instance.credentials, Instance.regionEndpoint);
-
-            var response = s3Client.ListBuckets();
-            foreach (var bucket in response.Buckets)
-            {
-                Debug.Log(bucket.BucketName);
-            }
-            //Debug.Log($"\nSSO Profile:\n {ssoProfileClient.GetSessionToken()}");
-            return "ok";
-        }
-
         // Method to get SSO credentials from the information in the shared config file.
         static AWSCredentials LoadSsoCredentials(string profile)
         {
@@ -119,10 +113,7 @@ namespace MlAgent.Clouds
             return credentials;
         }
 
-        static BasicAWSCredentials LoadBasicCredentials(string AK, string SK)
-        {
-            return new BasicAWSCredentials(AK, SK);
-        }
+
     }
 }
 
