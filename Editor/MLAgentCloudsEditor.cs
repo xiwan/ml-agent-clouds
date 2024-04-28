@@ -6,7 +6,6 @@ using MlAgent.Clouds;
 using System.IO.Compression;
 using System.IO;
 using System.Diagnostics;
-using static Codice.Client.Commands.WkTree.WorkspaceTreeNode;
 using Amazon.GameLift;
 
 namespace MlAgent.Editor
