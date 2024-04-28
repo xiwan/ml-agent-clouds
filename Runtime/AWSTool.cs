@@ -68,11 +68,15 @@ namespace MlAgent.Clouds
                     // 上传空对象
                     transferUtility.Upload(uploadRequest);
                 }
+                else
+                {
+                    throw new AmazonS3Exception("s3Location is Empty");
+                }
 
             }
             catch (AmazonS3Exception ex)
             {
-                Debug.Log($"Error2: {ex.Message}");
+                Debug.Log($"UploadToS3Bucket: {ex.Message}");
                 return null;
             }
             return $"{s3Location}/{uploadLocation}";
@@ -82,8 +86,10 @@ namespace MlAgent.Clouds
         {
             try
             {
+                Debug.Log($"bucketLocation: {bucketName}");
                 var bucketLocation = s3Client.GetBucketLocation(bucketName);
                 // 如果成功获取存储桶位置, 则表示存储桶存在
+                Debug.Log($"bucketLocation: {bucketLocation}");
             }
             catch (AmazonS3Exception)
             {
@@ -94,7 +100,7 @@ namespace MlAgent.Clouds
                 }
                 catch (AmazonS3Exception ee)
                 {
-                    Debug.Log($"Error: {ee.Message}");
+                    Debug.LogError($"SetupBucket: {ee.Message}");
                     return null;
                 }
 

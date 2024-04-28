@@ -1,14 +1,13 @@
 // #define DEV_MODE
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using UnityEditor;
+#if UNITY_EDITOR
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
+#endif
 using UnityEngine;
 
 namespace MlAgent.Clouds
@@ -132,6 +131,7 @@ namespace MlAgent.Clouds
 
         public static string GetInstalledPackagePath(string packageName)
         {
+#if UNITY_EDITOR
             ListRequest listRequest = Client.List(true, true);
 
             while (listRequest.Status == StatusCode.InProgress)
@@ -149,7 +149,7 @@ namespace MlAgent.Clouds
                     }
                 }
             }
-
+#endif
             return null;
         }
     }

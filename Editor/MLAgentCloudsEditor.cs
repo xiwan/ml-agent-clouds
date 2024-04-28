@@ -145,7 +145,6 @@ namespace MlAgent.Editor
                 }
             }
 
-
             //groupEnabled = EditorGUILayout.BeginToggleGroup("Optional Settings", groupEnabled);
             //myBool = EditorGUILayout.Toggle("Toggle", myBool);
             //myFloat = EditorGUILayout.Slider("Slider", myFloat, -3, 3);
