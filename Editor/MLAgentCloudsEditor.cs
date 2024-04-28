@@ -14,7 +14,8 @@ namespace MlAgent.Editor
     {
         string[] osOptions = { "Linux", "Windows", "MacOS" };
         int osIndex = 0;
-
+        string packageName = "";
+        string dedicateServerLocation = "";
         string buildButton = "Build Dedicated Server";
         bool buildButtonFired = false;
 
@@ -52,8 +53,15 @@ namespace MlAgent.Editor
             GUILayout.Label("ML-Agent-Clouds Settings", EditorStyles.largeLabel);
 
             DrawHorizontalLine();
-            GUILayout.Label("1st. Need to specify OS for dedicated server. Assets ouput to Build folder.", EditorStyles.wordWrappedMiniLabel);
+            GUILayout.Label("1st.\t Need to specify OS for dedicated server. At least, 1 scene need check. Assets ouput to Build folder.", EditorStyles.wordWrappedMiniLabel);
             osIndex = EditorGUILayout.Popup("target platform", osIndex, osOptions);
+            if (EditorBuildSettings.scenes.Length > 0)
+            {
+                packageName = System.IO.Path.GetFileNameWithoutExtension(EditorBuildSettings.scenes[0].path);
+            }
+            packageName = EditorGUILayout.TextField("package name", packageName);
+            GUILayout.Label("Local dedicated server location:", EditorStyles.wordWrappedMiniLabel);
+            GUILayout.Label(dedicateServerLocation, EditorStyles.linkLabel);
 
             if (GUILayout.Button(buildButton))
             {
@@ -62,14 +70,19 @@ namespace MlAgent.Editor
                 {
                     if (osIndex == 0)
                     {
-                        BuildScript.BuildLinuxServer();
+                        packageName = string.IsNullOrEmpty(packageName)?"default":packageName;
+                        BuildScript.BuildLinuxServer(packageName);
+                        dedicateServerLocation = $"build/Linux/{packageName}";
+                        UnityEngine.Debug.Log($"dedicateServerLocation: {dedicateServerLocation}");
+                        Repaint();
                     }
                     buildButtonFired = false;
                 }
             }
+            
 
             DrawHorizontalLine();
-            GUILayout.Label("2nd. Please input the AK/SK here, make sure sufficient privilege is granted.", EditorStyles.wordWrappedMiniLabel);
+            GUILayout.Label("2nd.\t Please input the AK/SK here, make sure sufficient privilege is granted.", EditorStyles.wordWrappedMiniLabel);
             awsAK = EditorGUILayout.TextField("AWS accessKey", awsAK);
             awsSK = EditorGUILayout.TextField("AWS secretKey", awsSK);
             targetS3Bucket = EditorGUILayout.TextField("s3 bucket", targetS3Bucket);
@@ -83,14 +96,14 @@ namespace MlAgent.Editor
                 s3ButtonFired = true;
                 if (s3ButtonFired)
                 {
-                    var localFolderPath = Path.Combine(Application.dataPath, "../Build/Linux");
+                    var localFolderPath = Path.Combine(Application.dataPath, "../Build/Linux", packageName);
                     var localZipFilePath = Path.Combine(Application.dataPath, "../Build/archive.zip");
                     try
                     {
                         
                         ZipFile.CreateFromDirectory(localFolderPath, localZipFilePath);
                         AWSTools.Instance.Init(awsAK, awsSK, regionOptions[regionIndex]);
-                        var uploadLocation = AWSTools.Instance.UploadToS3Bucket(targetS3Bucket, localZipFilePath);
+                        var uploadLocation = AWSTools.Instance.UploadToS3Bucket(targetS3Bucket, localZipFilePath, packageName);
 
                         if (uploadLocation != null)
                         {
@@ -117,7 +130,9 @@ namespace MlAgent.Editor
             }
 
             DrawHorizontalLine();
-            GUILayout.Label("3rd. Build a docker image and push to AWS ECR.", EditorStyles.wordWrappedMiniLabel);
+            GUILayout.Label("3rd.\t Need docker env, and build a docker image and push to AWS ECR (optional).  ", EditorStyles.wordWrappedMiniLabel);
+            GUILayout.Label("\t If M-series chips, it's recommended to find an AMD64 (x86) environment.", EditorStyles.wordWrappedMiniLabel);
+            GUILayout.Label("\t The manual usage is: build.sh {regionCode} {accountId} {imageName}", EditorStyles.wordWrappedMiniLabel);
             imageName = EditorGUILayout.TextField("Image Name", imageName);
             GUILayout.Label("Build outputs:", EditorStyles.wordWrappedMiniLabel);
             GUILayout.Label(buildStatus, EditorStyles.linkLabel);
@@ -143,6 +158,8 @@ namespace MlAgent.Editor
                     dockerButtonFired = false;
                 }
             }
+
+             DrawHorizontalLine();
 
             //groupEnabled = EditorGUILayout.BeginToggleGroup("Optional Settings", groupEnabled);
             //myBool = EditorGUILayout.Toggle("Toggle", myBool);

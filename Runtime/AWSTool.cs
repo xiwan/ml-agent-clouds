@@ -45,7 +45,7 @@ namespace MlAgent.Clouds
             return accountId;
         }
 
-        public string UploadToS3Bucket(string bucketName, string filePath)
+        public string UploadToS3Bucket(string bucketName, string filePath, string packageName)
         {
             var s3Client = new AmazonS3Client(Instance.credentials, Instance.regionEndpoint);
             string uploadLocation = "";
@@ -53,7 +53,7 @@ namespace MlAgent.Clouds
             try
             {          
                 s3Location = SetupBucket(s3Client, bucketName);
-                uploadLocation = $"archive-{DateTime.Now.ToString("yyyy-MM-dd")}.zip";
+                uploadLocation = $"{packageName}-{DateTime.Now.ToString("yyyy-MM-dd")}.zip";
                 if (s3Location != null)
                 {
 

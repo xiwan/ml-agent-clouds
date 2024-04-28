@@ -51,12 +51,12 @@ namespace MlAgent.Editor
             );
         }
 
-        public static void BuildLinuxServer() => BuildServerWithOptions("Linux", BuildOptions.None, BuildTarget.StandaloneLinux64);
-        public static void BuildLinuxServerDev() => BuildServerWithOptions("Linux", BuildOptions.Development, BuildTarget.StandaloneLinux64);
+        public static void BuildLinuxServer(string pakcageName) => BuildServerWithOptions($"Linux/{pakcageName}", BuildOptions.None, BuildTarget.StandaloneLinux64);
+        public static void BuildLinuxServerDev(string pakcageName) => BuildServerWithOptions($"Linux/{pakcageName}", BuildOptions.Development, BuildTarget.StandaloneLinux64);
 
-        public static void BuildMacOSServer() => BuildServerWithOptions("MacOS", BuildOptions.None, BuildTarget.StandaloneOSX);
+        public static void BuildMacOSServer(string pakcageName) => BuildServerWithOptions($"MacOS/{pakcageName}", BuildOptions.None, BuildTarget.StandaloneOSX);
 
-        public static void BuildWindowsServer() => BuildServerWithOptions("Windows", BuildOptions.None, BuildTarget.StandaloneWindows64);
+        public static void BuildWindowsServer(string pakcageName) => BuildServerWithOptions($"Windows/{pakcageName}", BuildOptions.None, BuildTarget.StandaloneWindows64);
 
         
     }
