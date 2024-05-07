@@ -1,0 +1,151 @@
+Parameters:
+  InstanceTypeParam:
+    Type: String
+    Default: g4dn.xlarge
+    AllowedValues:
+      - g4dn.xlarge
+      - g4dn.2xlarge
+    Description: Select instance type
+  VolumeSizeParam:
+    Type: Number
+    Default: "200"
+    AllowedValues:
+      - "100"
+      - "200"
+      - "500"
+      - "1000"
+    Description: EBS Volume Size (GiB)
+  RegionCodeParam:
+    Type: String
+    Default: us-east-2
+    AllowedValues:
+      - us-east-1
+      - us-east-2
+      - us-west-1
+      - us-west-2
+    Description: Region Code
+  BootstrapVersion:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /cdk-bootstrap/hnb659fds/version
+    Description: Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]
+Resources:
+  InstanceRole3CCE2F1D:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+                - sagemaker.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/AmazonECS_FullAccess
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/AmazonS3FullAccess
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/AmazonSageMakerFullAccess
+    Metadata:
+      aws:cdk:path: MlagentSinglenodeStack/InstanceRole/Resource
+  SecurityGroupDD263621:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: MlagentSinglenodeStack/SecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow SSH
+          FromPort: 22
+          IpProtocol: tcp
+          ToPort: 22
+        - CidrIp: 0.0.0.0/0
+          Description: Allow Port 5005
+          FromPort: 5005
+          IpProtocol: tcp
+          ToPort: 5005
+        - CidrIp: 0.0.0.0/0
+          Description: Allow Port 6006
+          FromPort: 6006
+          IpProtocol: tcp
+          ToPort: 6006
+      VpcId: vpc-076af1a01f161fec1
+    Metadata:
+      aws:cdk:path: MlagentSinglenodeStack/SecurityGroup/Resource
+  MLAgentNotebookInstance:
+    Type: AWS::SageMaker::NotebookInstance
+    Properties:
+      DefaultCodeRepository: https://github.com/xiwan/AWS-Mlagents
+      InstanceType:
+        Fn::Join:
+          - ""
+          - - ml.
+            - Ref: InstanceTypeParam
+      RoleArn:
+        Fn::GetAtt:
+          - InstanceRole3CCE2F1D
+          - Arn
+      RootAccess: Enabled
+      SecurityGroupIds:
+        - Fn::GetAtt:
+            - SecurityGroupDD263621
+            - GroupId
+      SubnetId: subnet-02c0f4c5390de7ce2
+      VolumeSizeInGB:
+        Ref: VolumeSizeParam
+    Metadata:
+      aws:cdk:path: MlagentSinglenodeStack/MLAgent-NotebookInstance
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAA/1WNwQ6CMBBEv4V7WQXiF3gwXpTgB5ilrlpru6TdxhDCv1vUi6dJZt7M1FA1DawLfMVSX2z5ND1MJ0Ft1fbqWwzoSCiojiKnoEll8DwZdDB1/KQFWnRWpOtcJJ2CkXEXOA1L9mfMKuKNHFoKkLMDC/XMdu+joNd5I5vHJEOSz+zvcVbtKHf2qwaqCjbFIxpThuTFOILuq2+NSix1xgAAAA==
+    Metadata:
+      aws:cdk:path: MlagentSinglenodeStack/CDKMetadata/Default
+Outputs:
+  NotebookInstanceUrl:
+    Description: Notebook Instance URL
+    Value:
+      Fn::Join:
+        - ""
+        - - https://
+          - Ref: RegionCodeParam
+          - .console.aws.amazon.com/sagemaker/home?region=
+          - Ref: RegionCodeParam
+          - "#/notebook-instances/openNotebook/"
+          - Fn::GetAtt:
+              - MLAgentNotebookInstance
+              - NotebookInstanceName
+          - ?view=lab
+Rules:
+  CheckBootstrapVersion:
+    Assertions:
+      - Assert:
+          Fn::Not:
+            - Fn::Contains:
+                - - "1"
+                  - "2"
+                  - "3"
+                  - "4"
+                  - "5"
+                - Ref: BootstrapVersion
+        AssertDescription: CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.
+

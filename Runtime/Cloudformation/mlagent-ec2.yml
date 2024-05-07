@@ -1,0 +1,158 @@
+Parameters:
+  InstanceTypeParam:
+    Type: String
+    Default: g4dn.xlarge
+    AllowedValues:
+      - g4dn.xlarge
+      - g4dn.2xlarge
+    Description: Select instance type
+  VolumeSizeParam:
+    Type: Number
+    Default: "200"
+    AllowedValues:
+      - "100"
+      - "200"
+      - "500"
+      - "1000"
+    Description: EBS Volume Size (GiB)
+  RegionCodeParam:
+    Type: String
+    Default: us-east-2
+    AllowedValues:
+      - us-east-1
+      - us-east-2
+      - us-west-1
+      - us-west-2
+    Description: Region Code
+  BootstrapVersion:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /cdk-bootstrap/hnb659fds/version
+    Description: Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]
+Resources:
+  InstanceRole3CCE2F1D:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+                - sagemaker.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/AmazonECS_FullAccess
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/AmazonS3FullAccess
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/AmazonSageMakerFullAccess
+    Metadata:
+      aws:cdk:path: MlagentSinglenodeStack/InstanceRole/Resource
+  SecurityGroupDD263621:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: MlagentSinglenodeStack/SecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow SSH
+          FromPort: 22
+          IpProtocol: tcp
+          ToPort: 22
+        - CidrIp: 0.0.0.0/0
+          Description: Allow Port 5005
+          FromPort: 5005
+          IpProtocol: tcp
+          ToPort: 5005
+        - CidrIp: 0.0.0.0/0
+          Description: Allow Port 6006
+          FromPort: 6006
+          IpProtocol: tcp
+          ToPort: 6006
+      VpcId: vpc-076af1a01f161fec1
+    Metadata:
+      aws:cdk:path: MlagentSinglenodeStack/SecurityGroup/Resource
+  InstanceInstanceProfileAB5AEF02:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - Ref: InstanceRole3CCE2F1D
+    Metadata:
+      aws:cdk:path: MlagentSinglenodeStack/Instance/InstanceProfile
+  InstanceC1063A87:
+    Type: AWS::EC2::Instance
+    Properties:
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize:
+              Ref: VolumeSizeParam
+            VolumeType: gp3
+      IamInstanceProfile:
+        Ref: InstanceInstanceProfileAB5AEF02
+      ImageId: ami-07b85d3d0ce8bde4e
+      InstanceType:
+        Ref: InstanceTypeParam
+      KeyName: test01
+      SecurityGroupIds:
+        - Fn::GetAtt:
+            - SecurityGroupDD263621
+            - GroupId
+      SubnetId: subnet-02c0f4c5390de7ce2
+      Tags:
+        - Key: Name
+          Value: MlagentSinglenodeStack/Instance
+      UserData:
+        Fn::Base64: |-
+          #!/bin/bash
+          yum update -y
+          yum install -y git
+          cd /home/ec2-user
+          git clone https://github.com/xiwan/AWS-Mlagents
+    DependsOn:
+      - InstanceRole3CCE2F1D
+    Metadata:
+      aws:cdk:path: MlagentSinglenodeStack/Instance/Resource
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAA/1WNwQ6CMBBEv4V7WQXiF3gwniT1A0ytS1yBlmy3MYT03wWVRE+TmbyZKaGoKthm5hlye2vzjq4wncXYVu0bVxs2PQqy0hh8ZItqBi8TmR4m7TtcoFWPLohxFmv2DXWYFNpy3kIbmWQ8sI/Dgv0Ha+l3IKXFnaIMUd4H3++k6lHu3m0qKArYZY9AlHN0Qj2C/ugLtrqs0NAAAAA=
+    Metadata:
+      aws:cdk:path: MlagentSinglenodeStack/CDKMetadata/Default
+Outputs:
+  InstanceId:
+    Value:
+      Ref: InstanceC1063A87
+Rules:
+  CheckBootstrapVersion:
+    Assertions:
+      - Assert:
+          Fn::Not:
+            - Fn::Contains:
+                - - "1"
+                  - "2"
+                  - "3"
+                  - "4"
+                  - "5"
+                - Ref: BootstrapVersion
+        AssertDescription: CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.
+
